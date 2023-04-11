@@ -1,25 +1,19 @@
 {
-  "name": "backend",
+  "name": "questions-app-api",
   "version": "1.0.0",
-  "license": "MIT",
+  "description": "",
+  "main": "server.js",
   "scripts": {
-    "dev": "nodemon src/server.js"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon ./src/server.js localhost 3333"
   },
+  "keywords": [],
+  "author": "Dhiully Lemos <dhiullyl@gmail.com>",
+  "license": "ISC",
   "dependencies": {
-    "bcrypt": "^5.1.0",
-    "body-parser": "^1.20.1",
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
-    "dotenv": "^16.0.3",
-    "ejs": "~2.6.1",
+    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "express-session": "^1.17.1",
-    "http-errors": "~1.6.3",
-    "jsonwebtoken": "^8.5.1",
-    "morgan": "~1.9.1",
-    "mysql2": "^2.3.3"
-  },
-  "devDependencies": {
-    "nodemon": "^1.19.3"
+    "mongoose": "^7.0.3",
+    "nodemon": "^2.0.22"
   }
 }

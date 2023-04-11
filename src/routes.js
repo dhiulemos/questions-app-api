@@ -1,46 +1,24 @@
 const express = require('express');
 
-const AnswersController = require('./controllers/AnswersController');
-const QuestionsController = require('./controllers/QuestionsController');
-const UsersController = require('./controllers/UsersController');
+const UserController = require('./controllers/UserController');
+const QuizController = require('./controllers/QuizController');
+const QuestionController = require('./controllers/QuestionController');
 
 const routes = express.Router();
-const jwt = require('jsonwebtoken');
 
-const checkToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+routes.post('/signup', UserController.signup);
+routes.post('/signin', UserController.signin);
 
-  if (!token) {
-    return res.status(404).json({ massage: 'Acesso negado' });
-  }
+routes.post('/quiz', QuizController.create);
+routes.get('/quiz/all/:user_id', QuizController.showByUser);
+routes.get('/quiz/:id', QuizController.show);
+routes.patch('/quiz/:id', QuizController.update);
+routes.delete('/quiz/:id', QuizController.delete);
 
-  try {
-    const secret = process.env.SECRET_KEY;
-
-    jwt.verify(token, secret);
-
-    next();
-  } catch (err) {
-    console.log(err);
-    return res.status(404).json({ massage: 'Token inválido' });
-  }
-};
-
-routes.post('/questions', QuestionsController.create);
-routes.get('/questions', QuestionsController.findAll);
-routes.delete('/questions/:id', QuestionsController.delete);
-routes.put('/questions/:id', QuestionsController.update);
-
-routes.post('/answers/:question_id', AnswersController.create);
-routes.get('/answers/:question_id', AnswersController.findAll);
-routes.delete('/answers/:id', AnswersController.delete);
-routes.put('/answers/:id', AnswersController.update);
-
-routes.post('/register', UsersController.register);
-routes.post('/login', UsersController.login);
-
-routes.get('/user', UsersController.findOne);
-routes.get('/user/:id', checkToken, UsersController.findById);
+routes.post('/question', QuestionController.create);
+routes.get('/question/all/:quiz_id', QuestionController.showByQuiz);
+routes.get('/question/:id', QuestionController.show);
+routes.patch('/question/:id', QuestionController.update);
+routes.delete('/question/:id', QuestionController.delete);
 
 module.exports = routes;
