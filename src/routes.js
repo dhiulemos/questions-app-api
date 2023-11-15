@@ -2,23 +2,17 @@ const express = require('express');
 
 const UserController = require('./controllers/UserController');
 const QuizController = require('./controllers/QuizController');
-const QuestionController = require('./controllers/QuestionController');
 
 const routes = express.Router();
 
 routes.post('/signup', UserController.signup);
-routes.post('/signin', UserController.signin);
+routes.post('/login', UserController.login);
+routes.put('/update-recent-quizzes', UserController.updateRecentQuizzes);
 
-routes.post('/quiz', QuizController.create);
-routes.get('/quiz/all/:user_id', QuizController.showByUser);
-routes.get('/quiz/:id', QuizController.show);
-routes.patch('/quiz/:id', QuizController.update);
-routes.delete('/quiz/:id', QuizController.delete);
-
-routes.post('/question', QuestionController.create);
-routes.get('/question/all/:quiz_id', QuestionController.showByQuiz);
-routes.get('/question/:id', QuestionController.show);
-routes.patch('/question/:id', QuestionController.update);
-routes.delete('/question/:id', QuestionController.delete);
+routes.get('/quizzes', QuizController.getAll);
+routes.get('/quizzes/:id', QuizController.getById);
+routes.post('/quizzes', QuizController.create);
+routes.put('/quizzes/:id', QuizController.update);
+routes.delete('/quizzes/:id', QuizController.delete);
 
 module.exports = routes;

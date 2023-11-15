@@ -1,74 +1,102 @@
-// index, show, store, update, destroy
-
+// UserController.js
 const User = require('../models/User');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 module.exports = {
   async signup(req, res) {
-    const { name, email, password, passwordConfirm } = req.body;
-
-    if (!name) return res.json({ message: 'Nome é obrigatório!' });
-    if (!email) return res.json({ message: 'Email é obrigatório!' });
-    if (!password) return res.json({ message: 'Senha é obrigatória!' });
-    if (!passwordConfirm) return res.json({ message: 'Confirmação de senha é obrigatória!' });
-    if (password != passwordConfirm) return res.json({ message: 'As senhas não são iguais' });
-
-    let userExists = await User.findOne({ email });
-
-    if (userExists) {
-      return res.json({ message: 'E-mail já registrado!' });
-    }
-
-    if (!name | !email | !password | !passwordConfirm) {
-      return res.json({ message: 'Preencha todos os campos' });
-    }
+    const { name, email, password, photo_url } = req.body;
 
     try {
+      // Verifique se o email já está cadastrado
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email já registrado.' });
+      }
+
+      // Hash da senha antes de salvar no banco de dados
+      const hashedPassword = await bcrypt.hash(password, 10);
+
       const user = await User.create({
         name,
         email,
-        password,
+        password: hashedPassword,
+        photo_url,
       });
 
-      return res.status(200).json({
-        message: 'Usuário criado com sucesso',
+      return res.status(201).json({
+        message: 'Usuário cadastrado com sucesso',
         user,
       });
     } catch (error) {
-      res.json({
-        message: 'Server Error',
+      res.status(500).json({
+        message: 'Erro no servidor',
         error: error.message,
       });
     }
   },
 
-  async signin(req, res) {
+  async login(req, res) {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.json({
-        message: 'Preencha todos os campos',
-      });
-    }
-
     try {
-      const user = await User.findOne({ email, password });
+      const user = await User.findOne({ email });
 
       if (!user) {
-        return res.json({
-          message: 'E-mail e/ou senha incorreto',
-          error: 'E-mail e/ou senha incorreto',
-        });
-      } else {
-        return res.status(200).json({
-          message: 'Usuário logado com sucesso',
-          user,
+        return res.status(401).json({
+          message: 'Credenciais inválidas',
         });
       }
+
+      // Comparar senha informada com a senha no banco de dados
+      const passwordMatch = await bcrypt.compare(password, user.password);
+
+      if (!passwordMatch) {
+        return res.status(401).json({
+          message: 'Credenciais inválidas',
+        });
+      }
+
+      // Criar token JWT
+      const token = jwt.sign({ userId: user._id }, 'seuSegredoDoJWT', { expiresIn: '1h' });
+
+      return res.status(200).json({
+        message: 'Login bem-sucedido',
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          photo_url: user.photo_url,
+        },
+      });
     } catch (error) {
-      return res.json({
-        message: 'Server Error',
+      res.status(500).json({
+        message: 'Erro no servidor',
         error: error.message,
       });
+    }
+  },
+
+  async updateRecentQuizzes(userId, quizId, accuracyRate) {
+    try {
+      // Obter o usuário
+      const user = await User.findById(userId);
+
+      // Adicionar o novo quiz aos últimos quizzes realizados
+      user.recent_quizzes.unshift({ quizId, accuracy_rate: accuracyRate });
+
+      // Limitar a quantidade de quizzes recentes a 3
+      if (user.recent_quizzes.length > 3) {
+        user.recent_quizzes.pop(); // Remover o quiz mais antigo
+      }
+
+      // Salvar as alterações
+      await user.save();
+
+      return user;
+    } catch (error) {
+      throw new Error(error.message);
     }
   },
 };
